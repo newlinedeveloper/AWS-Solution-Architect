@@ -80,3 +80,24 @@ AWS solution architect exam preparation
 - Storage Gateway volumes
 - Amazon FSx for windows and Lustre
 
+
+### Design resilient architectures wrap-up
+- Design scalable and loosely coupled architectures
+- Design highly available and/or fault-tolerant architectures
+
+**Services**
+- Amazone Ec2 auto scaling
+- Elastic load balancing
+- AWS lambda
+- AWS Fargate
+- AWS SQS
+- AWS SNS
+- AWS EFS
+- AWS FSx
+- Elastic cache
+- AWS RDS
+- Aurora
+- DynamoDB
+- Amazon cloudfront
+- Global accelerator
+- 
