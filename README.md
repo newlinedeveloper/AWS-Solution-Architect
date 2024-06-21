@@ -80,6 +80,7 @@ AWS solution architect exam preparation
 - Storage Gateway volumes
 - Amazon FSx for windows and Lustre
 
+--- 
 
 ### Design resilient architectures wrap-up
 - Design scalable and loosely coupled architectures
@@ -101,6 +102,34 @@ AWS solution architect exam preparation
 - Amazon cloudfront
 - Global accelerator
 
+#### Design scalable and loosely coupled architectures
+
+**Scaling fundamentals**
+- vertical
+- Horizontal
+- Elasticity = Autoscaling + Horizontal scaling
+
+#### Design highly available and/or fault-tolerant architectures
+
+- High availability
+- Fault tolrance
+- Disaster recovery - RPO, RTO
+  - Backup & Restore - Hours of RPO / RTO
+  - Pilot light - 10s of minutes of RPO / RTO
+  - Warm standby - minutes of RPO / RTO
+  - Multi-site active/active - Real time of RPO / RTO
+ 
+**Focus areas**
+- Determine automation strategies to ensure infrastrcture integratity
+- Determine the AWS services required to provide a highly available and/or fault-tolerant archiecture across AWS regions or Availability zones
+- Identify metrics based on business requirements
+- Implement designs to mitigate single point of failure
+- Implement strategies to ensure the durability and availability of data
+- Select an appropriate DR strategry to meet business requirements
+- Use AWS services that improve the reliability of legacy applications and applications not build for the cloud
+- Use purpose-built AWS services for workloads
+
+---
 
 
 ### Design high-performing architectures
@@ -135,6 +164,8 @@ AWS solution architect exam preparation
 - PrivateLink
 - Direct connect
 - AWs Glue
+
+---
 
 ### Design cost-optimized architectures
 - Design cost-optimized storage solutions
