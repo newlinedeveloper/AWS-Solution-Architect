@@ -132,3 +132,9 @@ curl -I http://<GLOBAL_ACCELERATOR_IP_1>
 curl -I http://<GLOBAL_ACCELERATOR_IP_2>
 
 ```
+
+- AWS Global Accelerator: A networking service that improves the availability and performance of your applications with global users.
+- Global Performance: Routes traffic to the nearest available endpoint to reduce latency.
+- High Availability: Automatically reroutes traffic to healthy endpoints in case of failure.
+- Static IP Addresses: Provides two static IP addresses that serve as a fixed entry point to your application.
+- Health Checks: Continuously monitors the health of your application endpoints.
