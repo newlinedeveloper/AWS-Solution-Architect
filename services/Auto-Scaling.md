@@ -204,6 +204,239 @@ func env() *awscdk.Environment {
 }
 ```
 
+# AWS Auto Scaling Policies
+
+AWS Auto Scaling allows you to automatically scale your resources (such as EC2 instances, ECS tasks, DynamoDB tables, etc.) to meet demand based on various scaling policies. These policies help to ensure that you have the right amount of capacity to handle the load, while minimizing costs.
+
+## Types of Auto Scaling Policies
+
+1. **Target Tracking Scaling Policy**
+2. **Step Scaling Policy**
+3. **Scheduled Scaling Policy**
+
+---
+
+### 1. **Target Tracking Scaling Policy**
+
+A target tracking scaling policy works like a thermostat. You set a target value (such as CPU utilization or request count per target) and AWS will automatically adjust the scaling to maintain that target.
+
+- **Example Use Case**: Scale EC2 instances in an Auto Scaling group to maintain an average CPU utilization of 50%.
+
+#### AWS CDK (Golang) Code:
+
+```go
+package main
+
+import (
+	"github.com/aws/aws-cdk-go/awscdk/v2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsautoscaling"
+	"github.com/aws/constructs-go/constructs/v10"
+	"github.com/aws/jsii-runtime-go"
+)
+
+type AutoScalingStackProps struct {
+	awscdk.StackProps
+}
+
+func NewAutoScalingStack(scope constructs.Construct, id string, props *AutoScalingStackProps) awscdk.Stack {
+	var sprops awscdk.StackProps
+	if props != nil {
+		sprops = props.StackProps
+	}
+
+	stack := awscdk.NewStack(scope, &id, &sprops)
+
+	vpc := awsec2.NewVpc(stack, jsii.String("MyVpc"), nil)
+
+	autoScalingGroup := awsautoscaling.NewAutoScalingGroup(stack, jsii.String("MyASG"), &awsautoscaling.AutoScalingGroupProps{
+		Vpc:            vpc,
+		InstanceType:   awsec2.InstanceType_Of(awsec2.InstanceClass_BURSTABLE2, awsec2.InstanceSize_MICRO),
+		MachineImage:   awsec2.NewAmazonLinuxImage(nil),
+		MinCapacity:    jsii.Number(1),
+		MaxCapacity:    jsii.Number(10),
+	})
+
+	autoScalingGroup.ScaleOnCpuUtilization(jsii.String("KeepCpu50Percent"), &awsautoscaling.CpuUtilizationScalingProps{
+		TargetUtilizationPercent: jsii.Number(50),
+	})
+
+	return stack
+}
+
+func main() {
+	app := awscdk.NewApp(nil)
+	NewAutoScalingStack(app, "AutoScalingStack", &AutoScalingStackProps{})
+	app.Synth(nil)
+}
+```
+
+---
+
+### 2. **Step Scaling Policy**
+
+In a step scaling policy, you define thresholds for scaling based on CloudWatch alarms. For example, if CPU utilization exceeds 70%, add 2 instances. If it falls below 30%, remove 1 instance.
+
+- **Example Use Case**: Increase the number of instances by 2 if CPU utilization exceeds 70%, decrease by 1 if below 30%.
+
+#### AWS CDK (Golang) Code:
+
+```go
+package main
+
+import (
+	"github.com/aws/aws-cdk-go/awscdk/v2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsautoscaling"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awscloudwatch"
+	"github.com/aws/constructs-go/constructs/v10"
+	"github.com/aws/jsii-runtime-go"
+)
+
+type StepScalingStackProps struct {
+	awscdk.StackProps
+}
+
+func NewStepScalingStack(scope constructs.Construct, id string, props *StepScalingStackProps) awscdk.Stack {
+	var sprops awscdk.StackProps
+	if props != nil {
+		sprops = props.StackProps
+	}
+
+	stack := awscdk.NewStack(scope, &id, &sprops)
+
+	vpc := awsec2.NewVpc(stack, jsii.String("MyVpc"), nil)
+
+	autoScalingGroup := awsautoscaling.NewAutoScalingGroup(stack, jsii.String("MyASG"), &awsautoscaling.AutoScalingGroupProps{
+		Vpc:            vpc,
+		InstanceType:   awsec2.InstanceType_Of(awsec2.InstanceClass_BURSTABLE2, awsec2.InstanceSize_MICRO),
+		MachineImage:   awsec2.NewAmazonLinuxImage(nil),
+		MinCapacity:    jsii.Number(1),
+		MaxCapacity:    jsii.Number(10),
+	})
+
+	cpuAlarmHigh := awscloudwatch.NewAlarm(stack, jsii.String("HighCpuAlarm"), &awscloudwatch.AlarmProps{
+		Metric: autoScalingGroup.MetricCpuUtilization(nil),
+		Threshold: jsii.Number(70),
+		EvaluationPeriods: jsii.Number(1),
+	})
+
+	cpuAlarmLow := awscloudwatch.NewAlarm(stack, jsii.String("LowCpuAlarm"), &awscloudwatch.AlarmProps{
+		Metric: autoScalingGroup.MetricCpuUtilization(nil),
+		Threshold: jsii.Number(30),
+		EvaluationPeriods: jsii.Number(1),
+		ComparisonOperator: awscloudwatch.ComparisonOperator_LESS_THAN_THRESHOLD,
+	})
+
+	autoScalingGroup.ScaleOnMetric(jsii.String("ScaleUpOnHighCpu"), &awsautoscaling.BasicStepScalingPolicyProps{
+		Metric: autoScalingGroup.MetricCpuUtilization(nil),
+		ScalingSteps: &[]*awsautoscaling.ScalingInterval{
+			{
+				Upper: jsii.Number(70),
+				Change: jsii.Number(2),
+			},
+		},
+	})
+
+	autoScalingGroup.ScaleOnMetric(jsii.String("ScaleDownOnLowCpu"), &awsautoscaling.BasicStepScalingPolicyProps{
+		Metric: autoScalingGroup.MetricCpuUtilization(nil),
+		ScalingSteps: &[]*awsautoscaling.ScalingInterval{
+			{
+				Lower: jsii.Number(30),
+				Change: jsii.Number(-1),
+			},
+		},
+	})
+
+	return stack
+}
+
+func main() {
+	app := awscdk.NewApp(nil)
+	NewStepScalingStack(app, "StepScalingStack", &StepScalingStackProps{})
+	app.Synth(nil)
+}
+```
+
+---
+
+### 3. **Scheduled Scaling Policy**
+
+Scheduled scaling allows you to scale your resources based on a specific schedule. You can define when to increase or decrease the number of instances based on predictable load patterns (e.g., peak hours or low traffic periods).
+
+- **Example Use Case**: Scale up the number of instances to 5 every day at 8 AM, and scale down to 2 at 6 PM.
+
+#### AWS CDK (Golang) Code:
+
+```go
+package main
+
+import (
+	"github.com/aws/aws-cdk-go/awscdk/v2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsautoscaling"
+	"github.com/aws/constructs-go/constructs/v10"
+	"github.com/aws/jsii-runtime-go"
+)
+
+type ScheduledScalingStackProps struct {
+	awscdk.StackProps
+}
+
+func NewScheduledScalingStack(scope constructs.Construct, id string, props *ScheduledScalingStackProps) awscdk.Stack {
+	var sprops awscdk.StackProps
+	if props != nil {
+		sprops = props.StackProps
+	}
+
+	stack := awscdk.NewStack(scope, &id, &sprops)
+
+	vpc := awsec2.NewVpc(stack, jsii.String("MyVpc"), nil)
+
+	autoScalingGroup := awsautoscaling.NewAutoScalingGroup(stack, jsii.String("MyASG"), &awsautoscaling.AutoScalingGroupProps{
+		Vpc:            vpc,
+		InstanceType:   awsec2.InstanceType_Of(awsec2.InstanceClass_BURSTABLE2, awsec2.InstanceSize_MICRO),
+		MachineImage:   awsec2.NewAmazonLinuxImage(nil),
+		MinCapacity:    jsii.Number(1),
+		MaxCapacity:    jsii.Number(10),
+	})
+
+	autoScalingGroup.ScaleOnSchedule(jsii.String("ScaleUpInTheMorning"), &awsautoscaling.ScalingSchedule{
+		Schedule: awsautoscaling.Schedule_Cron(&awsautoscaling.CronOptions{
+			Hour: jsii.String("8"),
+			Minute: jsii.String("0"),
+		}),
+		DesiredCapacity: jsii.Number(5),
+	})
+
+	autoScalingGroup.ScaleOnSchedule(jsii.String("ScaleDownInTheEvening"), &awsautoscaling.ScalingSchedule{
+		Schedule: awsautoscaling.Schedule_Cron(&awsautoscaling.CronOptions{
+			Hour: jsii.String("18"),
+			Minute: jsii.String("0"),
+		}),
+		DesiredCapacity: jsii.Number(2),
+	})
+
+	return stack
+}
+
+func main() {
+	app := awscdk.NewApp(nil)
+	NewScheduledScalingStack(app, "ScheduledScalingStack", &ScheduledScalingStackProps{})
+	app.Synth(nil)
+}
+```
+
+---
+
+## Conclusion
+
+These are the three main types of AWS Auto Scaling policies:
+- **Target Tracking Scaling** for maintaining specific metric values like CPU utilization.
+- **Step Scaling** for triggering based on CloudWatch alarms when crossing defined thresholds.
+- **Scheduled Scaling** for scaling based on predictable, scheduled events.
+
+
 #### Some Limitations to Remember for Amazon EC2 Auto Scaling Group
 - Instance Limits: The number of instances in an Auto Scaling group is limited by your EC2 instance limits.
 - Scaling Limits: There are limits on the number of scaling policies and scheduled actions you can create.
