@@ -214,3 +214,108 @@ func env() *awscdk.Environment {
 - Aurora Serverless Scaling: Automatically scales capacity up or down based on your application's needs.
 - High Availability: Aurora replicates data across multiple Availability Zones for fault tolerance and high availability.
 - Aurora Global Database: Allows you to create a single database that spans multiple AWS regions for low-latency global reads and disaster recovery.
+- 
+
+# AWS RDS vs. Amazon Aurora
+
+## Overview
+
+Amazon RDS (Relational Database Service) and Amazon Aurora are both managed database services provided by AWS, but they have different features, performance characteristics, and use cases. This document provides a detailed comparison of AWS RDS and Amazon Aurora, including their features, limitations, capacity details, and pricing.
+
+## AWS RDS (Relational Database Service)
+
+### Key Features
+1. **Multiple Database Engines**:
+   - Supports MySQL, PostgreSQL, MariaDB, Oracle, and Microsoft SQL Server.
+
+2. **Automated Management**:
+   - Automated backups, software patching, and database snapshots.
+
+3. **Scalability**:
+   - Vertical scaling by changing instance types.
+   - Read replicas for MySQL, PostgreSQL, and MariaDB.
+
+4. **High Availability**:
+   - Multi-AZ deployments for automatic failover.
+
+5. **Security**:
+   - Encryption at rest and in transit.
+   - Network isolation using Amazon VPC.
+
+### Use Cases
+- General-purpose relational databases.
+- Applications requiring specific database engines like Oracle or SQL Server.
+- Workloads that need automated management and high availability.
+
+### Limitations
+- Performance may not match that of Aurora for MySQL and PostgreSQL workloads.
+- Limited to the features and capabilities of the underlying database engines.
+
+### Pricing
+- **Instance Pricing**: Varies based on instance type and database engine.
+- **Storage Pricing**: Charged per GB-month of provisioned storage.
+- **I/O Requests**: Charged per million requests for certain database engines.
+- **Backup Storage**: Charged per GB-month beyond the free backup storage limit.
+
+For detailed pricing, refer to the [AWS RDS Pricing](https://aws.amazon.com/rds/pricing/).
+
+## Amazon Aurora
+
+### Key Features
+1. **High Performance**:
+   - Up to 5 times the throughput of standard MySQL and up to 3 times the throughput of standard PostgreSQL.
+
+2. **Scalability**:
+   - Auto-scaling storage from 10 GB up to 128 TB.
+   - Supports up to 15 low-latency read replicas.
+
+3. **High Availability and Durability**:
+   - Multi-AZ deployment with automatic failover.
+   - Fault-tolerant storage with six-way replication across three Availability Zones.
+
+4. **Aurora Serverless**:
+   - Automatically scales compute capacity based on application demand.
+
+5. **Compatibility**:
+   - Compatible with MySQL 5.6, 5.7, and 8.0.
+   - Compatible with PostgreSQL 9.6, 10, 11, 12, and 13.
+
+### Use Cases
+- High-performance MySQL and PostgreSQL applications.
+- Applications requiring high availability and fault tolerance.
+- Variable workloads that benefit from Aurora Serverless.
+
+### Limitations
+- Limited to MySQL and PostgreSQL compatibility.
+- Higher cost compared to standard RDS for similar workloads.
+- Aurora Serverless may not be suitable for all workloads, particularly those requiring consistent, high-performance compute capacity.
+
+### Pricing
+- **Instance Pricing**: Varies based on instance type.
+- **Storage Pricing**: $0.10 per GB-month for storage.
+- **I/O Requests**: $0.20 per million requests.
+- **Backup Storage**: Charged per GB-month beyond the free backup storage limit.
+- **Aurora Serverless**: Charged based on Aurora Capacity Units (ACUs) per second.
+
+For detailed pricing, refer to the [Amazon Aurora Pricing](https://aws.amazon.com/rds/aurora/pricing/).
+
+## Comparison Table
+
+| Feature                    | AWS RDS                                | Amazon Aurora                          |
+|----------------------------|----------------------------------------|----------------------------------------|
+| **Database Engines**       | MySQL, PostgreSQL, MariaDB, Oracle, SQL Server | MySQL, PostgreSQL                      |
+| **Performance**            | Standard performance                   | High performance (5x MySQL, 3x PostgreSQL) |
+| **Scalability**            | Vertical scaling, read replicas        | Auto-scaling storage, up to 15 read replicas |
+| **High Availability**      | Multi-AZ deployments                   | Multi-AZ with six-way replication      |
+| **Storage**                | Fixed storage, manual scaling          | Auto-scaling storage (10 GB to 128 TB) |
+| **Serverless**             | Not available                          | Aurora Serverless                      |
+| **Compatibility**          | Multiple database engines              | MySQL, PostgreSQL                      |
+| **Cost**                   | Generally lower cost                   | Higher cost for similar workloads      |
+| **Use Cases**              | General-purpose databases, specific engine requirements | High-performance, high-availability applications |
+
+## Summary
+
+- **AWS RDS**: A versatile managed database service supporting multiple database engines (MySQL, PostgreSQL, MariaDB, Oracle, SQL Server). Suitable for general-purpose relational databases and applications requiring specific database engines.
+- **Amazon Aurora**: A high-performance, fully managed database engine compatible with MySQL and PostgreSQL. Designed for high availability, scalability, and performance. Suitable for high-performance applications and variable workloads.
+
+By understanding the differences between AWS RDS and Amazon Aurora, you can choose the service that best fits your specific requirements and use cases.
