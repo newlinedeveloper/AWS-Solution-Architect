@@ -425,3 +425,161 @@ This session policy allows a federated user to retrieve objects from the S3 buck
 ---
 
 These policies offer flexible and comprehensive ways to manage access and permissions in AWS, enabling you to ensure security and compliance across your AWS environment.
+
+An **assumed role** in AWS Identity and Access Management (IAM) refers to a role that a user or service can temporarily "assume" to obtain a set of permissions that are different from their usual IAM identity. This is typically done to give limited or cross-account access, enhance security, or apply the principle of least privilege.
+
+### Key Concepts:
+- **IAM Role**: A set of permissions without being associated with a specific user or group. It can be assumed by anyone (or any service) authorized to do so.
+- **Assuming a Role**: When an IAM user, AWS service, or external identity assumes a role, they temporarily inherit the permissions defined by the role's policies.
+
+### Use Cases for Assumed Roles
+1. **Cross-Account Access**: A role in one AWS account can be assumed by users or services in another account.
+2. **Temporary Elevated Permissions**: A user can assume a role with higher permissions for a limited period (e.g., for administrative tasks).
+3. **Service Roles**: AWS services like EC2, Lambda, or ECS assume roles to perform actions on your behalf.
+4. **Delegation of Access**: A role can be assumed by an external identity (e.g., federated users, third-party systems).
+
+---
+
+### How Role Assumption Works:
+1. **Create an IAM Role**: The role defines a set of permissions via its policy.
+2. **Specify the Trust Relationship**: A trust policy is attached to the role, defining who or what can assume the role.
+3. **Assume the Role**: A user, service, or entity assumes the role using the `sts:AssumeRole` API, receiving temporary security credentials (access key, secret key, session token) to use the role's permissions.
+
+---
+
+### Example: Cross-Account Access with Assumed Role
+
+#### Scenario:
+You have **Account A** (account ID: `111111111111`) and **Account B** (account ID: `222222222222`). You want users in Account B to assume a role in Account A and access an S3 bucket in Account A.
+
+#### Step-by-Step Configuration:
+
+1. **Create an IAM Role in Account A**:
+   In Account A, create a role that allows access to the S3 bucket.
+
+   **Trust Policy** (who can assume the role):
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "AWS": "arn:aws:iam::222222222222:root"  // Account B
+         },
+         "Action": "sts:AssumeRole"
+       }
+     ]
+   }
+   ```
+
+   This trust policy allows users from Account B to assume this role.
+
+2. **Attach Permissions to the Role**:
+   Attach a policy to the role that grants the necessary permissions, such as access to an S3 bucket.
+
+   **Permissions Policy** (what the role can do):
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": "s3:*",
+         "Resource": "arn:aws:s3:::my-bucket/*"
+       }
+     ]
+   }
+   ```
+
+   This policy allows the role to perform all actions on the `my-bucket` S3 bucket in Account A.
+
+3. **Assume the Role from Account B**:
+   In Account B, a user can assume the role in Account A using the AWS CLI, SDK, or API.
+
+   **Example using AWS CLI**:
+   ```bash
+   aws sts assume-role \
+     --role-arn arn:aws:iam::111111111111:role/S3AccessRole \
+     --role-session-name CrossAccountAccessSession
+   ```
+
+   This command will return temporary security credentials (access key, secret key, and session token) that allow the user to perform the actions specified in the role’s policy.
+
+4. **Use Temporary Credentials**:
+   After assuming the role, the user can use the temporary credentials to interact with the S3 bucket in Account A.
+
+   **Example CLI Command with Temporary Credentials**:
+   ```bash
+   aws s3 ls s3://my-bucket/ \
+     --access-key <temporary-access-key> \
+     --secret-key <temporary-secret-key> \
+     --session-token <temporary-session-token>
+   ```
+
+---
+
+### Example: Temporary Elevated Permissions with Assumed Role
+
+#### Scenario:
+You want a user to perform administrative tasks (e.g., manage EC2 instances) only when they explicitly assume an **AdminRole**.
+
+1. **Create an Admin Role**:
+   Create a role in the same AWS account and attach a policy that allows administrative actions.
+
+   **Admin Role Permissions**:
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Action": "ec2:*",
+         "Resource": "*"
+       }
+     ]
+   }
+   ```
+
+   This policy allows full access to EC2.
+
+2. **Trust Policy** (to allow only specific users to assume the role):
+   ```json
+   {
+     "Version": "2012-10-17",
+     "Statement": [
+       {
+         "Effect": "Allow",
+         "Principal": {
+           "AWS": "arn:aws:iam::111111111111:user/john"
+         },
+         "Action": "sts:AssumeRole"
+       }
+     ]
+   }
+   ```
+
+3. **Assuming the Admin Role**:
+   The user (John) must explicitly assume the **AdminRole** to gain the temporary elevated permissions.
+
+   **Example using AWS CLI**:
+   ```bash
+   aws sts assume-role \
+     --role-arn arn:aws:iam::111111111111:role/AdminRole \
+     --role-session-name AdminSession
+   ```
+
+   John can now use the temporary credentials to perform EC2 actions within the time-limited session.
+
+---
+
+### Key Points about Assumed Roles:
+- **Temporary Access**: When you assume a role, you get temporary security credentials (typically valid for 15 minutes to several hours) that expire after the session.
+- **Least Privilege**: Assumed roles promote the principle of least privilege, as users only get permissions for a limited period when needed.
+- **Cross-Account**: Roles are often used to facilitate secure cross-account access between different AWS accounts.
+- **Delegation of Access**: Roles can be used to delegate access to AWS resources without sharing long-term credentials like IAM user access keys.
+
+---
+
+### Summary:
+An **assumed role** in AWS is a powerful mechanism to grant temporary, scoped access to resources either within the same AWS account or across different AWS accounts. Whether it's used for cross-account access, temporary elevated permissions, or for AWS services to interact with other resources, it helps maintain a secure, flexible permission model.
