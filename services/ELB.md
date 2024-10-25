@@ -212,3 +212,111 @@ func env() *awscdk.Environment {
 - Types of Load Balancers: Application Load Balancer, Network Load Balancer, Classic Load Balancer, and Gateway Load Balancer.
 - Listener Rule Conditions: Host header, path, HTTP header, HTTP method, query string, and source IP.
 
+AWS provides three main types of load balancers under its **Elastic Load Balancing (ELB)** service. Each type is designed for specific use cases based on traffic patterns, application architecture, and target types. The three types of AWS load balancers are:
+
+1. **Application Load Balancer (ALB)**  
+2. **Network Load Balancer (NLB)**  
+3. **Gateway Load Balancer (GWLB)**
+
+Here’s an overview of each load balancer, their differences, and when to use them:
+
+---
+
+### 1. **Application Load Balancer (ALB)**
+- **Layer**: Operates at **Layer 7 (Application Layer)** of the OSI model.
+- **Key Features**:
+  - Supports **HTTP**, **HTTPS**, and **WebSocket** protocols.
+  - Can route traffic based on **content** such as URL paths, query parameters, HTTP headers, hostnames, etc. (content-based routing).
+  - Supports **path-based** and **host-based** routing.
+  - Provides **sticky sessions** (session affinity).
+  - Can route requests to multiple services based on rules (for microservices and containers).
+  - **SSL/TLS termination** (offloading SSL decryption).
+  - **Integrated with AWS WAF** for security filtering.
+  - **Target types**: EC2 instances, ECS tasks, Lambda functions, and IP addresses.
+  - **Redirects and fixed responses** can be configured for simple actions.
+- **Best For**: Web applications, microservices, HTTP/HTTPS traffic, and applications that need advanced routing (e.g., routing based on URL paths or domains).
+  
+- **When to Use**:
+  - For **HTTP(S)** traffic or where content-based routing is needed.
+  - To load balance traffic across **EC2 instances**, **containers (ECS/Fargate)**, or **Lambda** functions.
+  - When you need **advanced routing rules** for microservices architecture.
+  - When handling applications requiring **SSL/TLS termination**.
+
+---
+
+### 2. **Network Load Balancer (NLB)**
+- **Layer**: Operates at **Layer 4 (Transport Layer)**.
+- **Key Features**:
+  - Supports **TCP**, **UDP**, and **TLS** protocols.
+  - Extremely fast and capable of handling **millions of requests per second** with very low latency (~microseconds).
+  - Ideal for **high-performance, low-latency** traffic.
+  - Provides **static IP addresses** and can be assigned an **Elastic IP**.
+  - **Connection-oriented** load balancing (maintains TCP/UDP sessions).
+  - **Target types**: EC2 instances, IP addresses, and Lambda functions.
+  - Can perform **TLS pass-through** or **TLS termination**.
+  - Can handle **long-lived connections**, such as WebSocket or IoT applications.
+  - Supports **sticky sessions** based on the source IP of the client.
+  
+- **Best For**: Non-HTTP traffic, performance-sensitive applications, and large volumes of TCP/UDP requests (e.g., gaming, IoT, VoIP, real-time data processing).
+
+- **When to Use**:
+  - For **TCP/UDP-based applications** where high performance and low latency are critical.
+  - For **high-throughput** use cases, like **real-time gaming** or **financial transaction processing**.
+  - When you need **static IP addresses** or want to assign **Elastic IPs** to the load balancer.
+  - For applications requiring **long-lived connections** like WebSockets or VPNs.
+
+---
+
+### 3. **Gateway Load Balancer (GWLB)**
+- **Layer**: Operates at **Layer 3 (Network Layer)**.
+- **Key Features**:
+  - Routes and distributes traffic to a fleet of virtual appliances (such as firewalls or security devices).
+  - Works with **third-party network appliances** or custom virtual appliances deployed in AWS.
+  - Handles **Layer 3** traffic, forwarding IP packets to virtual appliances.
+  - Integrates with **AWS Firewall Manager**, **Traffic Mirroring**, and **other VPC services**.
+  - Designed specifically for **traffic inspection**, **security**, and **network traffic processing** use cases.
+  
+- **Best For**: Deploying network appliances, such as firewalls, security, or monitoring tools across multiple VPCs.
+
+- **When to Use**:
+  - When you need to deploy **third-party virtual appliances** (e.g., firewalls, Intrusion Detection Systems) to inspect or filter traffic.
+  - To route network traffic through **security appliances** before it reaches your VPC resources.
+
+---
+
+### Comparison of ALB vs. NLB vs. GWLB
+
+| Feature                      | **Application Load Balancer (ALB)**        | **Network Load Balancer (NLB)**            | **Gateway Load Balancer (GWLB)**           |
+|-------------------------------|--------------------------------------------|--------------------------------------------|--------------------------------------------|
+| **OSI Layer**                 | Layer 7 (Application Layer)                | Layer 4 (Transport Layer)                  | Layer 3 (Network Layer)                    |
+| **Protocols Supported**       | HTTP, HTTPS, WebSocket                     | TCP, UDP, TLS                              | IP (Layer 3)                               |
+| **Routing**                   | Content-based (host/path/headers)          | Connection-based                           | Network-level routing                      |
+| **Performance**               | High (up to millions of requests)          | Very high (millions of requests with low latency) | High                                       |
+| **SSL/TLS Termination**       | Yes                                        | Yes (or TLS pass-through)                  | No                                         |
+| **Sticky Sessions**           | Yes (Cookie-based)                         | Yes (Source IP-based)                      | No                                         |
+| **Static IP Support**         | No                                         | Yes                                        | No                                         |
+| **Use Cases**                 | Web apps, microservices, advanced routing  | Real-time apps, IoT, gaming, performance-sensitive apps | Network traffic inspection, firewalling |
+| **Target Types**              | EC2, ECS, Lambda, IP addresses             | EC2, IP addresses, Lambda                  | Virtual Appliances                         |
+| **Supports WebSockets**       | Yes                                        | Yes                                        | No                                         |
+| **Health Checks**             | HTTP/HTTPS                                 | TCP/HTTP                                   | IP-level                                   |
+| **Integration with Security** | AWS WAF                                    | N/A                                        | Virtual security appliances                |
+
+---
+
+### Summary: When to Use Which Load Balancer?
+
+- **Use Application Load Balancer (ALB)**:
+  - For **web applications** with HTTP/HTTPS traffic.
+  - If you need **content-based routing**, such as path-based or host-based routing.
+  - If you are working with **microservices** or **container-based applications** (ECS, Lambda).
+
+- **Use Network Load Balancer (NLB)**:
+  - For **high-performance**, low-latency applications using **TCP/UDP/TLS** protocols.
+  - For applications that require **static IP addresses** or **Elastic IPs**.
+  - For **real-time systems**, such as gaming servers, VoIP applications, or IoT services.
+
+- **Use Gateway Load Balancer (GWLB)**:
+  - If you need to route traffic through **network appliances**, such as firewalls or intrusion detection systems.
+  - When building out a network security solution for multiple **VPCs**.
+
+Each type of load balancer is optimized for specific kinds of traffic, ensuring that your application can scale effectively based on your architecture and traffic requirements.
