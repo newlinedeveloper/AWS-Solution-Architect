@@ -250,3 +250,178 @@ func env() *awscdk.Environment {
     }
 }
 ```
+
+AWS provides a variety of policy types to manage permissions for users, services, and resources. These policies allow you to define what actions are allowed or denied on AWS resources and are essential for managing security and access control. Below is an explanation of each policy type, along with examples and use cases for each:
+
+---
+
+### 1. **Identity-Based Policies**
+- **Definition**: Identity-based policies are attached to **IAM identities** such as users, groups, or roles. They define what actions the identity can perform on which resources.
+- **Common Types**:
+  - **Managed Policies**: Predefined policies provided by AWS or created by you that can be attached to multiple identities.
+  - **Inline Policies**: Policies that are directly attached to a specific user, group, or role.
+
+#### Example:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::example-bucket"
+    }
+  ]
+}
+```
+This identity-based policy allows the IAM user or role to list objects in the S3 bucket `example-bucket`.
+
+#### Use Case:
+- **When to Use**: Use identity-based policies when you want to define what **actions** a particular **user, group, or role** can perform on AWS resources.
+- **Scenario**: You want to allow an IAM user or role to access certain resources like S3, EC2, or RDS.
+
+---
+
+### 2. **Resource-Based Policies**
+- **Definition**: Resource-based policies are attached directly to AWS resources (such as S3 buckets, SNS topics, and SQS queues) and define who can access that resource and what actions they can perform.
+- **Commonly Used With**: S3 buckets, SNS topics, SQS queues, Lambda functions.
+
+#### Example:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::123456789012:role/S3AccessRole"
+      },
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::example-bucket/*"
+    }
+  ]
+}
+```
+This resource-based policy allows the role `S3AccessRole` to retrieve objects from the S3 bucket `example-bucket`.
+
+#### Use Case:
+- **When to Use**: Use resource-based policies when you want to define which **users, roles, or AWS services** can interact with a specific **resource**.
+- **Scenario**: You want to grant access to an S3 bucket to users from another AWS account or allow a Lambda function to access an SQS queue.
+
+---
+
+### 3. **Permissions Boundaries**
+- **Definition**: Permissions boundaries are an advanced feature for managing permissions. They define the **maximum permissions** that an IAM identity (user or role) can have. These boundaries act as a guardrail, ensuring that users or roles cannot exceed the defined permissions, even if other policies allow broader permissions.
+- **Common Use**: Used in environments where delegated administration is needed to limit the permissions that can be granted by other admins.
+
+#### Example:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": "arn:aws:s3:::example-bucket"
+    }
+  ]
+}
+```
+This permissions boundary restricts the IAM identity to only access the S3 bucket `example-bucket` and prevents granting broader permissions.
+
+#### Use Case:
+- **When to Use**: Use permissions boundaries to set limits on the permissions that IAM users or roles can have.
+- **Scenario**: You allow team leads to create roles for their team, but you want to ensure they cannot grant permissions beyond a certain boundary (e.g., no access to critical resources like RDS or DynamoDB).
+
+---
+
+### 4. **AWS Organizations Service Control Policies (SCPs)**
+- **Definition**: SCPs are used within AWS Organizations to define the **maximum permissions** that can be applied to the accounts in your organization. SCPs do not grant permissions by themselves; they act as guardrails by limiting the maximum permissions that can be granted by identity-based policies.
+- **Scope**: SCPs apply to all IAM identities (users, groups, roles) within an AWS account.
+
+#### Example:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Deny",
+      "Action": "ec2:TerminateInstances",
+      "Resource": "*"
+    }
+  ]
+}
+```
+This SCP denies all users in the organization the ability to terminate EC2 instances, regardless of their individual permissions.
+
+#### Use Case:
+- **When to Use**: Use SCPs to enforce organizational policies across multiple AWS accounts.
+- **Scenario**: You want to ensure that no one in your organization can create certain high-cost resources (e.g., EC2 instances with a specific instance type) or perform sensitive actions (e.g., deleting RDS databases).
+
+---
+
+### 5. **Access Control Lists (ACLs)**
+- **Definition**: ACLs are used to control access to specific AWS resources at a more granular level. Unlike IAM policies, which are JSON-based, ACLs are more limited in functionality and are often used for **network-level** access control.
+- **Common Use**: Primarily used with Amazon S3 and VPC to control network-level access.
+
+#### Example (S3 Bucket ACL):
+```json
+{
+  "Grants": [
+    {
+      "Grantee": {
+        "ID": "CanonicalUserID",
+        "Type": "CanonicalUser"
+      },
+      "Permission": "READ"
+    }
+  ]
+}
+```
+This ACL allows the specified user to have read access to the S3 bucket.
+
+#### Use Case:
+- **When to Use**: Use ACLs when you need to provide **basic access control** at the **resource level**.
+- **Scenario**: You want to control access to an S3 bucket by granting **read-only access** to specific users or applications without using an IAM policy.
+
+---
+
+### 6. **Session Policies**
+- **Definition**: Session policies are policies that are passed when an **IAM role** or **federated user** assumes a role via `sts:AssumeRole`. These policies further restrict the permissions granted by the role's identity-based policies and are temporary in nature.
+- **Common Use**: Used in scenarios where temporary permissions need to be defined or constrained.
+
+#### Example:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::example-bucket/*"
+    }
+  ]
+}
+```
+This session policy allows a federated user to retrieve objects from the S3 bucket `example-bucket` during their session.
+
+#### Use Case:
+- **When to Use**: Use session policies when you need to apply temporary restrictions during an IAM role session.
+- **Scenario**: A user assumes a role for a limited period, and you want to restrict their permissions to only specific actions (e.g., read-only access to S3 objects).
+
+---
+
+### When to Use Each Policy Type:
+
+| **Policy Type**           | **Use Case**                                                                                                                                   |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| **Identity-Based Policies**   | Attach policies to IAM users, groups, or roles to define what actions they can perform. Suitable for day-to-day access control.               |
+| **Resource-Based Policies**   | Control who can access a specific AWS resource. Ideal when you want to give cross-account access or allow services (e.g., Lambda) to access resources. |
+| **Permissions Boundaries**    | Limit the permissions that an IAM role or user can have. Useful for delegated administration and limiting what permissions can be granted.      |
+| **SCPs (AWS Organizations)** | Enforce guardrails for all accounts in an AWS Organization, ensuring that no user or role can exceed specific permissions.                     |
+| **ACLs**                     | Basic access control for specific AWS services like S3 or VPC at a network level. Suitable for simple permission models.                      |
+| **Session Policies**         | Restrict the permissions of a temporary session when a role is assumed. Ideal for granting temporary, limited permissions to users or services. |
+
+---
+
+These policies offer flexible and comprehensive ways to manage access and permissions in AWS, enabling you to ensure security and compliance across your AWS environment.
