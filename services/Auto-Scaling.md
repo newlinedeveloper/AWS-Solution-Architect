@@ -452,3 +452,30 @@ These are the three main types of AWS Auto Scaling policies:
 - Suspending and Resuming Scaling Processes: Temporarily stop scaling activities.
 - Limitations: Instance limits, scaling limits, and cooldown periods.
 
+
+In Amazon EC2 Auto Scaling, the **default termination policy** is designed to help the auto-scaling group decide which instance to terminate when scaling in (reducing the number of instances). The process is aimed at maintaining balance across Availability Zones (AZs) and terminating the instances that are least beneficial to keep.
+
+Here’s how the **default termination policy** works, step by step:
+
+### 1. **Identify the Availability Zone (AZ) with the Most Instances**
+   - Auto Scaling first tries to identify the AZ that has the most instances.
+   - In this case, the AZ identified is **us-east-1a**, which has 4 instances, the highest number among the AZs.
+
+### 2. **Look for Instances with the Oldest Launch Configuration**
+   - Auto Scaling checks which instances are using the **oldest launch configuration** because AWS wants to replace older configurations with newer ones.
+   - In this scenario, **Instance B** has the oldest launch configuration.
+   
+### 3. **Tie-breaking Logic**
+   - If multiple instances are found using the oldest launch configuration, the next check is to find the instance **closest to the next billing hour**, because terminating an instance close to the next billing cycle can help save costs.
+
+However, in this case, there is no tie to break because **Instance B** already meets the condition of having the oldest launch configuration.
+
+### Answer:
+According to the **default termination policy**, **Instance B**, which has the oldest launch configuration, will be terminated.
+
+### Summary of the Default Termination Process:
+1. Choose the AZ with the most instances (us-east-1a).
+2. Select the instance using the **oldest launch configuration** (Instance B).
+3. If there's a tie, terminate the instance **closest to the next billing hour**.
+
+In this scenario, **Instance B** will be terminated because it has the oldest launch configuration.
