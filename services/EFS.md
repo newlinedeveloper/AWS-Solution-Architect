@@ -244,3 +244,29 @@ func env() *awscdk.Environment {
 - Amazon EFS: A scalable, fully managed elastic NFS file system for use with AWS Cloud services and on-premises resources.
 - Mounting an EFS File System: Allows you to access the file system from your EC2 instances.
 - EFS-to-EFS Regional Data Transfer: Supports data transfer between file systems in different AWS regions using AWS DataSync.
+
+To improve the performance of big data processing workflows running on **Amazon Elastic File System (Amazon EFS)**, the correct solution depends on the specific performance needs of the workload. 
+
+For big data processing, which typically requires high throughput and the ability to handle large volumes of data efficiently, **Amazon EFS Throughput Mode** and **Performance Mode** are crucial considerations.
+
+### The two relevant options are:
+
+1. **EFS Max I/O Performance Mode**:
+   - **When to use**: 
+     - For highly parallelized applications, such as big data analysis, media processing, or genomics workflows, which require the highest levels of scalability.
+     - It is designed for workloads where thousands of clients need access to the file system simultaneously.
+     - **Tradeoff**: Slightly higher latencies but offers the ability to handle large amounts of data and clients in parallel.
+   - **How it helps**: Allows you to scale the file system with very high levels of throughput and connections from multiple EC2 instances without performance degradation.
+  
+2. **Provisioned Throughput Mode**:
+   - **When to use**:
+     - If the workload has specific and predictable throughput requirements that exceed what is provided by default.
+     - In scenarios where consistent and higher levels of throughput are required for processing large datasets.
+     - **How it helps**: You can specify the throughput you need, independent of the amount of data stored, ensuring that big data workflows get sufficient throughput for processing tasks.
+
+---
+
+### **Correct Solution**:
+For an **analytics company running big data processing workflows**, the most suitable choice is likely the **EFS Max I/O Performance Mode**, since it provides high scalability and can handle the large, parallelized nature of big data workflows. If predictable throughput is also important, combining **Max I/O mode** with **Provisioned Throughput Mode** may be necessary for consistent performance.
+
+
